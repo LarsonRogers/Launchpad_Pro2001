@@ -1,127 +1,75 @@
-# AI Agent Starter Template
+# AI Agent Starter Pack
 
-Drop these files into any repo root to set up dual-agent support for
-Claude Code and ChatGPT Codex (plus any other agent that reads markdown).
+A platform-agnostic instruction set for AI coding agents. Drop it into any repo
+and any agent — Claude Code, Codex, Cursor, Windsurf, Aider, or others — will
+orient itself, follow consistent architectural rules, and maintain a running
+handoff log so nothing is lost between sessions or platforms.
+
+## What You Get
+
+A coding agent that:
+- Reads the codebase before touching anything
+- Follows consistent rules for code structure, commenting, and git workflow
+- Maintains a Captain's Log so any session — human or agent — can pick up
+  exactly where the last one left off
+- Produces code that is readable and transferable to a human dev team
+
+## Setup
+
+1. Copy all files into your repo root, preserving the `.claude/` and `.codex/`
+   directory structure.
+2. Start your agent session. The agent handles the rest.
+
+That's it. The agent reads the docs, assesses the codebase, fills in what it
+needs to know, and tells you what it found before writing a single line of code.
+
+## Use Cases
+
+**New project**
+Start a session. The agent bootstraps from scratch — scans the empty repo,
+creates the Captain's Log, and asks you to confirm the first task.
+
+**Active project**
+Every session resumes automatically from the Captain's Log. Switch between
+Claude, Codex, Cursor, or any other agent without losing context. The log
+is the handoff.
+
+**Inherited or unmaintained codebase**
+Drop the pack in and start a session. The agent runs a full assessment —
+maps the repo, reads the git history, identifies problem areas and tech debt,
+documents the inferred architecture, and gives you an honest report before
+anything is changed. You decide what to do with it; then work begins.
 
 ## Files
 
 ```
-ARCHITECTURE.md         — Read-first structural contract. Universal rules for
-                          separation of concerns, function discipline, state
-                          management, and error handling. Also contains:
-                          - Pre-edit protocol (mandatory checklist before any change)
-                          - Scope control rules (one task = one change)
-                          - Checkpoint/rollback strategy (git gates)
-                          - Pattern registry (document existing patterns here)
+ARCHITECTURE.md       Agent instruction manual — structural rules, session
+                      protocols, handoff and commenting standards, pattern
+                      registry, Captain's Log format.
 
-CLAUDE.md               — Canonical instruction manual. Tech stack, language
-                          rules, validation commands, file structure, code style,
-                          git workflow, and task prompts. Fill in [BRACKETED]
-                          placeholders with your project details.
+CLAUDE.md             Project instruction manual — tech stack, code style,
+                      validation commands, file structure, git workflow,
+                      and task prompts. Filled in by the agent on first session.
 
-AGENTS.md               — Codex entry point. Summarizes the hardest constraints
-                          and points to ARCHITECTURE.md then CLAUDE.md.
+AGENTS.md             Entry point for Codex and other agents that look for
+                      this filename. Summarizes key rules and points to
+                      ARCHITECTURE.md and CLAUDE.md.
 
-.claude/settings.json   — Claude Code: auto-approve edits, allow common
-                          commands, deny destructive ops and secrets.
+.claude/settings.json Claude Code permissions — auto-approves edits and
+                      common commands, denies destructive operations and
+                      access to secrets.
 
-.codex/config.toml      — Codex CLI: auto-approve on failure, workspace
-                          write access, network for git, read CLAUDE.md
-                          as instruction file.
+.codex/config.toml    Codex CLI config — approval policy, sandbox permissions,
+                      and instruction file references.
 ```
 
-## Setup
+## Agent Compatibility
 
-1. Copy all files (plus the `.claude/` and `.codex/` directories) into your repo root.
+Instructions are written in plain markdown and are agent-agnostic.
+Any agent that can read files can follow them.
 
-2. Replace all `[PROJECT_NAME]` and `[BRACKETED]` placeholders in
-   `CLAUDE.md` and `AGENTS.md`.
-
-3. Fill in `ARCHITECTURE.md`:
-   - Add your project-specific directory structure and data flow.
-   - Add any established patterns to the Pattern Registry.
-   - Add key invariants that must not be broken.
-
-4. Fill in `CLAUDE.md`:
-   - Tech Stack table
-   - Validation Commands
-   - File Structure
-   - Code Style section
-   - Task Prompts
-
-5. Add language-specific lint/test commands to the `allow` list in
-   `.claude/settings.json` if needed (e.g., `"Bash(npm run lint)"`).
-
-6. Commit and push.
-
-7. Run `codex` or `claude` from the repo root. The agent reads the
-   docs automatically and starts with the context it needs.
-
-## Use Cases
-
-**New project** — Drop the pack in, fill in the placeholders, start coding.
-The agent bootstraps the Captain's Log on first session.
-
-**Active project** — Every session resumes from the Captain's Log automatically.
-Switch between Claude, Codex, Cursor, or any other agent without losing context.
-
-**Inherited / unmaintained codebase** — Drop the pack into a repo you've cloned.
-The agent detects no Captain's Log, runs a full four-phase assessment (read, map,
-report, document), fills in the project-specific sections of `ARCHITECTURE.md`
-and `CLAUDE.md` from what it finds, then creates the first log entry documenting
-the codebase as inherited. You get an honest architectural overview and problem
-area report before a single line is changed.
-
----
-
-## How It Works
-
-- **Claude Code** reads `CLAUDE.md` on session start, plus
-  `.claude/settings.json` for permissions.
-
-- **Codex CLI** reads `AGENTS.md` on session start (which directs it to
-  `ARCHITECTURE.md` first), plus falls back to `CLAUDE.md` via
-  `project_doc_fallback_filenames` in the config.
-
-- **Other agents** (Cursor, Windsurf, Aider) can be pointed to
-  `ARCHITECTURE.md` then `CLAUDE.md` manually. All instructions are agent-agnostic.
-
-## Key Behaviors Enforced by This Template
-
-**Pre-edit protocol** — The agent must read, map, and report before touching anything.
-Prevents agents from diving in without understanding existing structure.
-
-**Scope control** — One prompt = one logical change. Agent must declare scope
-before editing and must not make opportunistic refactors. Prevents rewrite creep.
-
-**Checkpoint gates** — Agent commits after every completed task, verifies clean
-git state before starting, and rolls back on failure. Prevents accumulation of
-broken state across tasks.
-
-**Pattern registry** — Existing patterns are documented so the agent discovers
-them instead of inventing alternatives. Prevents pattern fragmentation.
-
-**Separation of concerns** — Logic, I/O, and data live in distinct layers.
-No business logic inside handlers or callbacks. Prevents logic burial inside functions.
-
-## Customization
-
-### Adding language-specific commands to Claude Code
-
-Add to the `allow` array in `.claude/settings.json`:
-```json
-"Bash(npm run lint)",
-"Bash(npm run test *)",
-"Bash(python -m pytest *)",
-"Bash(ruff check *)",
-"Bash(cargo build *)",
-"Bash(make *)"
-```
-
-### Tightening Codex permissions
-
-Change `approval_policy` in `.codex/config.toml`:
-- `"on-failure"` — auto-run everything, ask only on failure (default)
-- `"on-request"` — agent decides when to ask
-- `"untrusted"` — only auto-run safe commands (ls, cat, etc.)
-- `"never"` — never ask, fail silently on blocked ops
+| Agent | Entry point |
+|-------|-------------|
+| Claude Code | `CLAUDE.md` (auto-read on session start) |
+| Codex CLI | `AGENTS.md` (auto-read on session start) |
+| Cursor, Windsurf, Aider, others | Point to `ARCHITECTURE.md` then `CLAUDE.md` |
